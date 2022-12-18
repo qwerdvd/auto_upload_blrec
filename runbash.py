@@ -1,16 +1,19 @@
 import asyncio
 import os
 import platform
+import stream_gears
 from dotenv import load_dotenv
+from upload_to_bilibili import upload_to_bilibili
 
 load_dotenv(verbose=True)
 
 work_dir = os.getenv('BLREC_WORK_DIR')
 rclone_dir = os.getenv('RCLONE_DIR')
 delete_local = os.getenv('DELETE_LOCAL')
+upload_to_bili = os.getenv('UPLOAD_TO_BILI')
 
 
-async def run_bash(filepath, room_id, name):
+async def run_bash(filepath, room_id, name, title):
     sys_str = platform.system()
     file_data = filepath.split('/')[-1].split('-')[2]
     time_data = file_data[:4] + '-' + file_data[4:6] + '-' + file_data[6:8]
@@ -22,6 +25,8 @@ async def run_bash(filepath, room_id, name):
     else:
         _filepath = work_dir + filepath
     if os.path.exists(_filepath):
+        if upload_to_bili:
+            await upload_to_bilibili(_filepath, room_id, title, time_data)
         if delete_local:
             proc = await asyncio.create_subprocess_shell(
                 f'rclone move {_filepath} {rclone_dir}{room_id}_{name}/{time_data}',

@@ -40,7 +40,10 @@ async def handle_post_request():
     match event_type:
         case 'FileClosed':
             # 上传文件
-            await runbash(event['EventData']['RelativePath'], event['EventData']['RoomId'], event['EventData']['Name'])
+            await runbash(
+                event['EventData']['RelativePath'], event['EventData']['RoomId'],
+                event['EventData']['Name'], event['EventData']['Title']
+            )
         case 'StreamStarted':
             # 开始直播
             banner = f"*{event['EventData']['Name']}*的直播开始了，快来看看吧！"
