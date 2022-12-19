@@ -13,6 +13,8 @@
 # server.serve_forever()
 import json
 import os
+from time import sleep
+
 from aioflask import Flask, request
 from dotenv import load_dotenv
 from tgnotice import tg_notice as tgnotice
@@ -23,6 +25,8 @@ load_dotenv(verbose=True)
 
 webhook_addr = os.getenv('WEBHOOK_ADDR')
 webhook_port = int(os.getenv('WEBHOOK_PORT'))
+UPLOAD_TO_BILI_ROOM_ID = os.getenv('UPLOAD_TO_BILI_ROOM_ID')
+delay = int(os.getenv('DELAY'))
 
 
 @app.route("/", methods=['POST'])
@@ -39,11 +43,15 @@ async def handle_post_request():
            f"标题: [{event['EventData']['Title']}](https://live.bilibili.com/{event['EventData']['RoomId']})"
     match event_type:
         case 'FileClosed':
-            # 上传文件
-            await runbash(
-                event['EventData']['RelativePath'], event['EventData']['RoomId'],
-                event['EventData']['Name'], event['EventData']['Title']
-            )
+            # 进行延迟处理
+            if room_id in UPLOAD_TO_BILI_ROOM_ID:
+                pass
+            else:
+                # 上传文件
+                await runbash(
+                    event['EventData']['RelativePath'], event['EventData']['RoomId'],
+                    event['EventData']['Name'], event['EventData']['Title']
+                )
         case 'StreamStarted':
             # 开始直播
             banner = f"*{event['EventData']['Name']}*的直播开始了，快来看看吧！"

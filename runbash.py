@@ -4,12 +4,13 @@ import platform
 import stream_gears
 from dotenv import load_dotenv
 from upload_to_bilibili import upload_to_bilibili
+from upload_to_rclone import rclone_upload
 
 load_dotenv(verbose=True)
 
 work_dir = os.getenv('BLREC_WORK_DIR')
 rclone_dir = os.getenv('RCLONE_DIR')
-delete_local = os.getenv('DELETE_LOCAL')
+delete_local = bool(os.getenv('DELETE_LOCAL'))
 upload_to_bili = os.getenv('UPLOAD_TO_BILI')
 
 
@@ -27,27 +28,14 @@ async def run_bash(filepath, room_id, name, title):
     if os.path.exists(_filepath):
         if upload_to_bili:
             await upload_to_bilibili(_filepath, room_id, title, time_data)
-        if delete_local:
-            proc = await asyncio.create_subprocess_shell(
-                f'rclone move {_filepath} {rclone_dir}{room_id}_{name}/{time_data}',
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await proc.communicate()
-            if stdout:
-                print(f'[stdout]\n{stdout.decode()}')
-            if stderr:
-                print(f'[stderr]\n{stderr.decode()}')
-        else:
-            proc = await asyncio.create_subprocess_shell(
-                f'rclone copy {_filepath} {rclone_dir}{room_id}_{name}/{time_data}',
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await proc.communicate()
-            if stdout:
-                print(f'[stdout]\n{stdout.decode()}')
-            if stderr:
-                print(f'[stderr]\n{stderr.decode()}')
+        await rclone_upload(_filepath, room_id, name, rclone_dir, time_data, delete_local)
     else:
         print('文件不存在')
+
+
+async def add_file_list(file_list, file, work_dir):
+    for file_name in os.listdir(work_dir):
+        if file in file_name and os.path.isfile(file_name):
+            file_list.append(file_name)
+    file_list = sorted(file_list)
+    return file_list
