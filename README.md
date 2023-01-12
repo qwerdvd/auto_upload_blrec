@@ -68,3 +68,8 @@ python main.py
 + [ ] 提供转封装功能，压制弹幕功能等
 + [ ] 实现多账户`cookie`储存，实现多账户投稿
 + [ ] 支持`brec`的`webhook`
++ [ ] 提供`webUI`实现更多功能
++ [ ] 提供`docker`镜像
++ [ ] 提供`docker-compose`文件
++ [ ] 实现操作录播姬，在`webUI`中提供录播姬操作
++ [ ] 提供`api`接口, 可以接入`nonebot`等
