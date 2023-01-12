@@ -1,15 +1,12 @@
-import json
 import pathlib
-import shutil
-from collections import UserDict
 
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import tomli as tomllib
+import tomli
+import json
+from config_model import ConfigModel
 
 
-class Config(UserDict):
+class Config(ConfigModel):
+
     def load_cookies(self):
         self.data["user"] = {"cookies": {}}
         with open('cookies.json', encoding='utf-8') as stream:
@@ -20,7 +17,6 @@ class Config(UserDict):
             self.data["user"]["access_token"] = s["token_info"]["access_token"]
 
     def load(self, file):
-        import yaml
         if file is None:
             if pathlib.Path('config.toml').exists():
                 self.data['toml'] = True
@@ -29,22 +25,18 @@ class Config(UserDict):
                 raise FileNotFoundError('未找到配置文件，请先创建配置文件')
         with file as stream:
             if file.name.endswith('.toml'):
-                self.data = tomllib.load(stream)
-            else:
-                self.data = yaml.load(stream, Loader=yaml.FullLoader)
+                self.data = tomli.load(stream)
 
         with file as stream:
             if file.name.endswith('.toml'):
-                self.data = tomllib.load(stream)
+                self.data = tomli.load(stream)
                 self.data['toml'] = True
-            else:
-                self.data = yaml.load(stream, Loader=yaml.FullLoader)
 
     def save(self):
         if self.data.get('toml'):
             import tomli_w
             with open('config.toml', 'rb') as stream:
-                old_data = tomllib.load(stream)
+                old_data = tomli.load(stream)
                 old_data["lines"] = self.data["lines"]
                 old_data["threads"] = self.data["threads"]
                 old_data["streamers"] = self.data["streamers"]

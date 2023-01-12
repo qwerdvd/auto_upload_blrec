@@ -1,7 +1,6 @@
-import asyncio
 import os
 import platform
-import stream_gears
+
 from dotenv import load_dotenv
 from upload_to_bilibili import upload_to_bilibili
 from upload_to_rclone import rclone_upload
