@@ -1,20 +1,27 @@
-# 自用版blrec_auto_upload
+# blrec_auto_upload
+
+## 丨介绍
+#### 基于`fastapi`构建的`b站录播姬`自动上传脚本
+#### 目前支持上传至`rclone`, 并通过`telegrame`推送信息
 
 ## 丨如何安装与使用？
-+ 1.安装python3.10版本
-+ 2.使用你喜欢的方式安装依赖，建议创建虚拟环境
-+ 现阶段项目的requirements.txt不完善
-+ 其中的[aioflask](https://github.com/miguelgrinberg/aioflask)需要自行合并[aioflask](https://github.com/miguelgrinberg/aioflask/pull/11)的pr才可使用
++ 1.安装`python3.10`以上的版本
++ 2.使用你喜欢的方式安装依赖，建议使用`poetry`创建虚拟环境
 ```text
-pip install -r requirements.txt
+# 克隆项目
+git clone https://github.com/qwerdvd/auto_upload_blrec.git
+cd auto_upload_blrec
+
+# 安装依赖
+poetry install
+# 进入虚拟环境
+poetry shell
 ```
 + 3.新建.env文件，填入信息，模板如下
 ```text
 # .env
 
 #run
-WEBHOOK_ADDR= #监听地址
-WEBHOOK_PORT= #监听端口
 RCLONE_DIR= #rclone挂载的目录
 BLREC_WORK_DIR= #blrec的工作目录
 
@@ -25,19 +32,39 @@ PROXY_URL= #代理地址
 #Telegram
 TG_CHAT_ID= # Telegram ID
 TG_BOT_TOKEN= # Telegram Bot Token
+
+#功能开关
+UPLOAD_TO_RCLONE=True
+UPLOAD_TO_BILIBILI=True
+
+#是否删除本地文件？
+DELETE_LOCAL=True
 ```
 + 4.设置录播姬文件格式如下
 ```text
 {{ roomId }}-{{ name }}/{{ "now" | time_zone: "Asia/Shanghai" | format_date: "yyyy-MM-dd"}}/录制-{{ roomId }}-{{ "now" | time_zone: "Asia/Shanghai" | format_date: "yyyyMMdd-HHmmss-fff" }}-{{ title }}.flv
 ```
-format后的目录应为
+`format`后应为:
 ```text
 23058-3号直播间/2022-12-18/录制-23058-20221218-214909-056-哔哩哔哩音悦台.flv
 ```
-+ 5.在录播姬的设置里, 将地址填入"webhook v2"即可, 如"http://127.0.0.1:8081"
++ 5.在录播姬的`webhook V2`设置里填入下面的地址
+```text
+http://127.0.0.1:5000/webhook
+```
++ 6.运行
+```text
+python main.py
+```
 
 ## 丨TODO:
-+ [ ] 优化代码
-+ [ ] 优化requirements.txt
-+ [ ] 使用sqlite3存储数据
-+ [ ] 集成biliup 实现自动投稿b站
++ [x] 使用`fastapi`重构整体代码
++ [x] 异步优化
++ [ ] 支持更多推送平台
++ [ ] 抛弃`.env`文件，使用`config.toml`文件
++ [x] 优化`README.md`
++ [ ] 集成`biliup`实现自动投稿b站
++ [ ] 自动调用录播姬的修复功能
++ [ ] 提供转封装功能，压制弹幕功能等
++ [ ] 实现多账户`cookie`储存，实现多账户投稿
++ [ ] 支持`brec`的`webhook`

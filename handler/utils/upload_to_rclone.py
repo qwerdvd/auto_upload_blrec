@@ -9,7 +9,6 @@ def upload_to_rclone(
         event: BaseRecordModel,
         rclone_command: str,
         _filepath: str,
-        file_name: str
 ) -> bool:
     log_file_name = f"log/rclone_log/rclone-{event.EventData.RoomId}-{datetime.datetime.now().strftime('%Y-%m-%d')}.log"
     logger.add(log_file_name)
