@@ -1,0 +1,13 @@
+base:
+  rec-dir:
+  is-docker:
+  damaku:
+upload:
+  multipart:
+  delete-after-upload:
+  auto-upload:
+  min-time:
+server:
+  host:
+  port:
+  webhook:

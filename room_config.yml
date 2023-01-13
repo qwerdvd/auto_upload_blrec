@@ -1,0 +1,12 @@
+rooms:
+  room_id:
+  tags:
+  title:
+  description:
+  channel:
+  conditions:
+    item:
+    regexp:
+    tags:
+    channel:
+    process:

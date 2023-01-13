@@ -1,47 +1,36 @@
-import pathlib
-
-import tomli
-import json
-from config_model import ConfigModel
+from pydantic import BaseSettings
+from dotenv import load_dotenv
 
 
-class Config(ConfigModel):
+class Config(BaseSettings):
+    WEBHOOK_ADDR: str
+    WEBHOOK_PORT: int
 
-    def load_cookies(self):
-        self.data["user"] = {"cookies": {}}
-        with open('cookies.json', encoding='utf-8') as stream:
-            s = json.load(stream)
-            for i in s["cookie_info"]["cookies"]:
-                name = i["name"]
-                self.data["user"]["cookies"][name] = i["value"]
-            self.data["user"]["access_token"] = s["token_info"]["access_token"]
+    RCLONE_DIR: str
+    BLREC_WORK_DIR: str
 
-    def load(self, file):
-        if file is None:
-            if pathlib.Path('config.toml').exists():
-                self.data['toml'] = True
-                file = open('config.toml', "rb")
-            else:
-                raise FileNotFoundError('未找到配置文件，请先创建配置文件')
-        with file as stream:
-            if file.name.endswith('.toml'):
-                self.data = tomli.load(stream)
+    USE_PROXY: bool
+    PROXY_URL: str
 
-        with file as stream:
-            if file.name.endswith('.toml'):
-                self.data = tomli.load(stream)
-                self.data['toml'] = True
+    TG_CHAT_ID: str
+    TG_BOT_TOKEN: str
 
-    def save(self):
-        if self.data.get('toml'):
-            import tomli_w
-            with open('config.toml', 'rb') as stream:
-                old_data = tomli.load(stream)
-                old_data["lines"] = self.data["lines"]
-                old_data["threads"] = self.data["threads"]
-                old_data["streamers"] = self.data["streamers"]
-            with open('config.toml', 'wb') as stream:
-                tomli_w.dump(old_data, stream)
+    USE_TG_NOTIFICATION: bool
+    UPLOAD_TO_RCLONE: bool
+    UPLOAD_TO_BILIBILI: bool
+
+    DELETE_LOCAL: bool
+
+    class Config:
+        env_file = '.env'
+
+    _instance = None
+
+    def __new__(cls):
+        if not cls._instance:
+            load_dotenv('.env')
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
 
-config = Config()
+settings = Config()

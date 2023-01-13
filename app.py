@@ -1,10 +1,11 @@
 from dotenv import load_dotenv
 
-from fastapi import FastAPI, status, Request
+from fastapi import status, Request, FastAPI
 from loggerController import logger
 
 from model import BaseRecordModel
 from handler.EventHandler import handle_event
+from celery_app import handle_event as celery_handle_event
 
 app = FastAPI()
 background_tasks = set()
@@ -24,9 +25,9 @@ async def get_record(call_back: Request, status_code=status.HTTP_200_OK):
         data = await call_back.json()
 
     try:
-        event_type = data["EventType"]
         event = BaseRecordModel.create_event(**data)
         logger.info(f"GOT EVENT: {event.EventType}")
+        celery_handle_event.apply_async(args=[event])
 
         await handle_event(event)
 
@@ -37,6 +38,6 @@ async def get_record(call_back: Request, status_code=status.HTTP_200_OK):
         return {"message": str(e)}, status.HTTP_400_BAD_REQUEST
 
 
-@app.get("/")
+@app.post("/handle_event")
 async def hello():
     return {"message": "Hello World"}

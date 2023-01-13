@@ -33,9 +33,8 @@ async def handle_file_path(event: BaseRecordModel) -> tuple:
 
 
 async def handle_upload(event: BaseRecordModel) -> None:
+    _filepath, dir_path, file_name, time_data = await handle_file_path(event)
     if UPLOAD_TO_RCLONE:
-        _filepath, dir_path, file_name, time_data = await handle_file_path(event)
-
         rclone_command = f'rclone move {dir_path}/{_filepath}* {rclone_dir}{event.EventData.RoomId}_{event.EventData.Name}/{time_data}'
         logger.info(f"EventId: {event.EventId} | Rclone Command: {rclone_command}")
 
