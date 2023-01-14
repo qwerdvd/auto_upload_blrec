@@ -1,7 +1,8 @@
-from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from server.config import __init__ as config
 from utils import file_operation
+
 from server.config.record_model import BaseRecordModel
 
 
@@ -27,6 +28,6 @@ class VideoProcess(BaseModel):
 
     @staticmethod
     def session_start(event: BaseRecordModel):
-        rooms = file_operation.readJson(app.config.TIME_CACHE_PATH)
+        rooms = file_operation.readJson(config.server.TIME_CACHE_PATH)
         rooms[str(event.EventData.RoomId)] = event.EventTimestamp
-        file_operation.writeDict(app.config.TIME_CACHE_PATH, rooms)
+        file_operation.writeDict(config.TIME_CACHE_PATH, rooms)

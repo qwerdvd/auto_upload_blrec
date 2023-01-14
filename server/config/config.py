@@ -3,7 +3,7 @@ import os
 import re
 from typing import Optional, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, BaseSettings
 
 from utils import file_operation
 from loggerController import logger
@@ -11,7 +11,7 @@ from server.config.record_model import BaseRecordModel
 from server.config.utils import _getValue
 
 
-class TelegramNotify(BaseModel):
+class TelegramNotify(BaseSettings):
     enable: bool = False
     bot_token: str = ''
     chat_id: str = ''
@@ -22,7 +22,7 @@ class TelegramNotify(BaseModel):
         cls.bot_token = data['bot-token']
 
 
-class Proxy(BaseModel):
+class Proxy(BaseSettings):
     enable: bool = False
     proxy_url: str = ''
 
@@ -32,7 +32,7 @@ class Proxy(BaseModel):
         cls.proxy_url = data['proxy-url']
 
 
-class RcloneUpload(BaseModel):
+class RcloneUpload(BaseSettings):
     enable: bool = True
     delete_after_upload: bool = True
     remote: str = ''
@@ -44,7 +44,7 @@ class RcloneUpload(BaseModel):
         cls.remote = data['remote']
 
 
-class BilibiliUpload(BaseModel):
+class BilibiliUpload(BaseSettings):
     enable: bool = False
     multipart: int = 2
     delete_after_upload: bool = True
@@ -60,26 +60,37 @@ class BilibiliUpload(BaseModel):
         cls.min_time = data['min-time']
 
 
-class Process(BaseModel):
+class Process(BaseSettings):
     danmaku: bool = False
+    video_process_dir: str = ''
+    video_process_ext: list = []
+    video_process_danmaku: bool = True
 
     @classmethod
     def update(cls, data: dict):
         cls.danmaku = data['danmaku']
+        cls.video_process_dir = data['video-process-dir']
+        cls.video_process_ext = data['video-process-ext']
+        cls.video_process_danmaku = data['video-process-danmaku']
 
 
-class Server(BaseModel):
+class Server(BaseSettings):
     port: int = 5000
     webhooks: str = 'webhook'
+    time_cache_path: str = 'cache/time.json'
+    video_cache_path: str = 'cache/video.json'
 
     @classmethod
     def update(cls, data: dict):
         cls.port = data['port']
         cls.webhooks = data['webhooks']
+        cls.time_cache_path = data['time-cache-path']
+        cls.video_cache_path = data['video-cache-path']
 
 
-class BaseConfig(BaseModel):
+class BaseConfig(BaseSettings):
     rec_dir: str = Field(None, description='录播姬工作目录')
+    work_dir: str = Field(None, description='录播姬工作目录')
     workers: int = Field(1, description='线程数')
     server: Server = Field(Server(), description='server配置')
     process: Process = Field(Process(), description='process配置')
@@ -87,6 +98,8 @@ class BaseConfig(BaseModel):
     rclone_upload: RcloneUpload = Field(RcloneUpload(), description='rclone_upload配置')
     proxy: Proxy = Field(Proxy(), description='proxy配置')
     notify: TelegramNotify = Field(TelegramNotify(), description='notify配置')
+
+    config_dir: str = Field(None, description='配置文件目录')
 
     def __init__(self, config: dict):
         super().__init__()
@@ -97,6 +110,10 @@ class BaseConfig(BaseModel):
         self.rclone_upload.update(config['base']['rclone-upload'])
         self.proxy.update(config['base']['proxy'])
         self.notify.update(config['notify']['telegram'])
+        self.config_dir = self._config_dir()
+
+    def _config_dir(self):
+        return os.path.join(self.work_dir, 'config')
 
 
 class Condition(BaseModel):
