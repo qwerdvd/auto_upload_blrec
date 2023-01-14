@@ -1,17 +1,15 @@
 import asyncio
 
-from fastapi import status, Request, FastAPI
+from fastapi import APIRouter, Request, status
 from loggerController import logger
 
-from utils.model.record_model import BaseRecordModel
-from server.tasks.pushnotify.pushnotify import notify
+from server.config.record_model import BaseRecordModel
+from server.tasks.video_process import VideoProcess
+
+router = APIRouter()
 
 
-app = FastAPI()
-app.upload_queue = asyncio.Queue()
-
-
-@app.post("/webhook")
+@router.post("/webhook")
 async def get_record(call_back: Request, status_code=status.HTTP_200_OK):
     content_type = call_back.headers["content-type"]
     if content_type != "application/json":
@@ -25,11 +23,13 @@ async def get_record(call_back: Request, status_code=status.HTTP_200_OK):
         event = BaseRecordModel.create_event(**data)
         logger.info(f"EventId: {event.EventId} | EventType: {event.EventType}")
         if event.EventType == "SessionStarted":
-            asyncio.create_task(notify(event))
+            asyncio.create_task(VideoProcess.session_started(event))
         elif event.EventType == "FileOpening":
-            asyncio.create_task(notify(event))
+            # asyncio.create_task(notify(event))
+            pass
         elif event.EventType == "SessionEnded":
-            asyncio.create_task(notify(event))
+            # asyncio.create_task(notify(event))
+            pass
         return status_code
     except ValueError as e:
         logger.ValueError(e)

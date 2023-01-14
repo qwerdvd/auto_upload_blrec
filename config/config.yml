@@ -1,0 +1,38 @@
+base:
+  rec-dir: E:\录播
+  workers: 2
+
+  server:
+    port: 5000
+    webhooks: webhook
+
+  process:
+    danmaku: false
+
+  bilibili-upload:
+    enable: false
+    multipart: 2
+    delete-after-upload: true
+    auto-upload: true
+    min-time: 1
+
+  rclone-upload:
+    enable: true
+    delete-after-upload: true
+    remote: "bili:"
+
+  proxy:
+    enable: true
+    proxy-url: http://127.0.0.1:10809
+
+notify:
+  telegram:
+    enable: true
+    bot-token:
+    chat-id:
+
+account:
+  credential:
+    sessdata:
+    bili_jct:
+    buvid3:

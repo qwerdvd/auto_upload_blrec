@@ -2,7 +2,7 @@ import datetime
 import subprocess
 
 from loggerController import logger
-from utils.model.record_model import BaseRecordModel
+from server.config.record_model import BaseRecordModel
 
 
 def upload_to_rclone(

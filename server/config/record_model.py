@@ -2,7 +2,7 @@ from typing import Literal
 from datetime import datetime
 
 from pydantic import BaseModel, Field
-from utils.TimeUtils import fromIso
+from utils.time_operation import fromIso
 
 
 class BaseEventData(BaseModel):
