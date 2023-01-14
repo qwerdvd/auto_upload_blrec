@@ -1,14 +1,11 @@
 import os
 import platform
 
-# from celery.result import AsyncResult
 
 from server.tasks.upload.upload_to_rclone import upload_to_rclone
 from loggerController import logger
 from utils.model.record_model import BaseRecordModel
 from config import settings
-
-# from celery_app import rclone_upload
 
 
 def handle_file_path(event: BaseRecordModel) -> tuple[str, str, str]:
