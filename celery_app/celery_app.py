@@ -1,11 +1,11 @@
-import datetime
 import glob
 import subprocess
 
 from celery import Celery
-from loggerController import logger
-from model import BaseRecordModel
+
 from config import settings
+from loggerController import logger
+from utils.model.record_model import BaseRecordModel
 
 celery_app = Celery('tasks', broker='redis://localhost:6379/0', backend='redis://localhost:6379/0')
 

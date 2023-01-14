@@ -1,9 +1,6 @@
-import asyncio
-
-from .pushnotify import notify
-from model import BaseRecordModel
-from loggerController import logger
-from .upload import handle_upload
+from server.tasks.pushnotify.pushnotify import notify
+from utils.model.record_model import BaseRecordModel
+from server.tasks.upload.upload import handle_upload
 
 # background_tasks = set()
 
@@ -18,7 +15,7 @@ from .upload import handle_upload
 
 async def handle_event(event: BaseRecordModel) -> None:
     await notify(event)
-    if event.EventType == "FileClosed":
+    if event.EventType == "SessionEnded":
         await handle_upload(event)
 
     # logger.info(f"Create Asyncio Task | {background_tasks}")

@@ -2,10 +2,11 @@
 
 ## 丨介绍
 #### 基于`fastapi`构建的`b站录播姬`自动上传脚本
-#### 目前支持上传至`rclone`, 并通过`telegrame`推送信息
+#### 目前支持上传至`rclone`，并通过`telegrame`推送信息
+#### 由于`Celery`整不明白，先暂时在项目中禁用`Celery`
 
 ## 丨如何安装与使用？
-+ 1.安装`python3.10`以上的版本
++ 1.安装`Python3.10`以上的版本
 + 2.使用你喜欢的方式安装依赖，建议使用`poetry`创建虚拟环境
 ```text
 # 克隆项目
@@ -17,6 +18,7 @@ poetry install
 # 进入虚拟环境
 poetry shell
 ```
++ 3.安装`rclone`并配置好`rclone`，这里就不赘述了
 + 3.新建.env文件，填入信息，模板如下
 ```text
 # .env
@@ -72,4 +74,4 @@ python main.py
 + [ ] 提供`docker`镜像
 + [ ] 提供`docker-compose`文件
 + [ ] 实现操作录播姬，在`webUI`中提供录播姬操作
-+ [ ] 提供`api`接口, 可以接入`nonebot`等
++ [ ] 提供`api`接口，可以接入`nonebot`等

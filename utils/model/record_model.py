@@ -1,6 +1,8 @@
 from typing import Literal
+from datetime import datetime
 
 from pydantic import BaseModel, Field
+from utils.TimeUtils import fromIso
 
 
 class BaseEventData(BaseModel):
@@ -50,7 +52,7 @@ class BaseRecordModel(BaseModel):
     EventType: Literal[
         "SessionStarted", "SessionEnded", "StreamStarted", "StreamEnded", "FileOpening", "FileClosed"] = Field(
         description="事件类型")
-    EventTimestamp: str = Field(description="事件发生时间")
+    EventTimestamp: datetime = Field(description="事件发生时间", convert_loader=lambda value: fromIso(value))
     EventId: str = Field(description="事件ID")
     EventData: BaseEventData = Field(description="事件数据")
     _subclasses = {}
