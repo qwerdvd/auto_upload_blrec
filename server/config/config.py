@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, BaseSettings
 
 from utils import file_operation
 from loggerController import logger
-from server.config.record_model import BaseRecordModel
+from server.model.brec_model import BaseRecordModel
 from server.config.utils import _getValue
 
 

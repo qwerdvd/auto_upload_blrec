@@ -3,7 +3,7 @@ import asyncio
 from fastapi import APIRouter, Request, status
 from loggerController import logger
 
-from server.config.record_model import BaseRecordModel
+from server.model.brec_model import BaseRecordModel
 from server.tasks.video_process import VideoProcess
 
 router = APIRouter()

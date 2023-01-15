@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 from server.config import __init__ as config
 from utils import file_operation
 
-from server.config.record_model import BaseRecordModel
+from server.model.brec_model import BaseRecordModel
 
 
 class VideoProcess(BaseModel):
