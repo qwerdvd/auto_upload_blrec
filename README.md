@@ -62,13 +62,13 @@ python main.py
 + [x] 使用`fastapi`重构整体代码
 + [x] 异步优化
 + [ ] 支持更多推送平台
-+ [ ] 抛弃`.env`文件，使用`config.toml`文件
++ [x] 抛弃`.env`文件，使用`config.toml`文件
 + [x] 优化`README.md`
 + [ ] 集成`biliup`实现自动投稿b站
 + [ ] 自动调用录播姬的修复功能
 + [ ] 提供转封装功能，压制弹幕功能等
 + [ ] 实现多账户`cookie`储存，实现多账户投稿
-+ [ ] 支持`brec`的`webhook`
++ [x] 支持`brec`的`webhook`
 + [ ] 提供`webUI`实现更多功能
 + [ ] 提供`docker`镜像
 + [ ] 提供`docker-compose`文件

@@ -1,4 +1,4 @@
-from server import get_app
+from server.__init__ import get_app
 
 app = get_app()
 

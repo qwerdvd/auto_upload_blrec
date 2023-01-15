@@ -3,33 +3,37 @@ import os
 import re
 from typing import Optional, Any
 
+from dotenv import load_dotenv
 from pydantic import BaseModel, Field, BaseSettings
 
 from utils import file_operation
 from loggerController import logger
 from server.model.brec_model import BaseRecordModel
-from server.config.utils import _getValue
+from server.config.utils import _getValue, _setChannel
+
+
+load_dotenv()
+work_dir = os.getenv("WORK_DIR")
 
 
 class TelegramNotify(BaseSettings):
-    enable: bool = False
+    enable: bool = True
     bot_token: str = ''
-    chat_id: str = ''
+    chat_id: int = None
 
-    @classmethod
-    def update(cls, data: dict):
-        cls.enable = data['enable']
-        cls.bot_token = data['bot-token']
+    def update(self, data: dict):
+        self.enable = data['enable']
+        self.bot_token = data['bot-token']
+        self.chat_id = data['chat-id']
 
 
 class Proxy(BaseSettings):
     enable: bool = False
     proxy_url: str = ''
 
-    @classmethod
-    def update(cls, data: dict):
-        cls.enable = data['enable']
-        cls.proxy_url = data['proxy-url']
+    def update(self, data: dict):
+        self.enable = data['enable']
+        self.proxy_url = data['proxy-url']
 
 
 class RcloneUpload(BaseSettings):
@@ -37,11 +41,10 @@ class RcloneUpload(BaseSettings):
     delete_after_upload: bool = True
     remote: str = ''
 
-    @classmethod
-    def update(cls, data: dict):
-        cls.enable = data['enable']
-        cls.delete_after_upload = data['delete-after-upload']
-        cls.remote = data['remote']
+    def update(self, data: dict):
+        self.enable = data['enable']
+        self.delete_after_upload = data['delete-after-upload']
+        self.remote = data['remote']
 
 
 class BilibiliUpload(BaseSettings):
@@ -51,13 +54,12 @@ class BilibiliUpload(BaseSettings):
     auto_upload: bool = True
     min_time: int = 1
 
-    @classmethod
-    def update(cls, data: dict):
-        cls.enable = data['enable']
-        cls.multipart = data['multipart']
-        cls.delete_after_upload = data['delete-after-upload']
-        cls.auto_upload = data['auto-upload']
-        cls.min_time = data['min-time']
+    def update(self, data: dict):
+        self.enable = data['enable']
+        self.multipart = data['multipart']
+        self.delete_after_upload = data['delete-after-upload']
+        self.auto_upload = data['auto-upload']
+        self.min_time = data['min-time']
 
 
 class Process(BaseSettings):
@@ -66,12 +68,11 @@ class Process(BaseSettings):
     video_process_ext: list = []
     video_process_danmaku: bool = True
 
-    @classmethod
-    def update(cls, data: dict):
-        cls.danmaku = data['danmaku']
-        cls.video_process_dir = data['video-process-dir']
-        cls.video_process_ext = data['video-process-ext']
-        cls.video_process_danmaku = data['video-process-danmaku']
+    def update(self, data: dict):
+        self.danmaku = data['danmaku']
+        self.video_process_dir = data['video-process-dir']
+        self.video_process_ext = data['video-process-ext']
+        self.video_process_danmaku = data['video-process-danmaku']
 
 
 class Server(BaseSettings):
@@ -80,15 +81,14 @@ class Server(BaseSettings):
     time_cache_path: str = 'cache/time.json'
     video_cache_path: str = 'cache/video.json'
 
-    @classmethod
-    def update(cls, data: dict):
-        cls.port = data['port']
-        cls.webhooks = data['webhooks']
-        cls.time_cache_path = data['time-cache-path']
-        cls.video_cache_path = data['video-cache-path']
+    def update(self, data: dict):
+        self.port = data['port']
+        self.webhooks = data['webhooks']
+        self.time_cache_path = data['time-cache-path']
+        self.video_cache_path = data['video-cache-path']
 
 
-class BaseConfig(BaseSettings):
+class Config(BaseModel):
     rec_dir: str = Field(None, description='录播姬工作目录')
     work_dir: str = Field(None, description='录播姬工作目录')
     workers: int = Field(1, description='线程数')
@@ -97,19 +97,23 @@ class BaseConfig(BaseSettings):
     bilibili_upload: BilibiliUpload = Field(BilibiliUpload(), description='bilibili_upload配置')
     rclone_upload: RcloneUpload = Field(RcloneUpload(), description='rclone_upload配置')
     proxy: Proxy = Field(Proxy(), description='proxy配置')
-    notify: TelegramNotify = Field(TelegramNotify(), description='notify配置')
+    notify: TelegramNotify = Field(TelegramNotify(), description='telegram_notify配置')
 
     config_dir: str = Field(None, description='配置文件目录')
 
-    def __init__(self, config: dict):
+    def __init__(self):
         super().__init__()
-        self.__dict__.update(config['base'])
-        self.server.update(config['base']['server'])
-        self.process.update(config['base']['process'])
-        self.bilibili_upload.update(config['base']['bilibili-upload'])
-        self.rclone_upload.update(config['base']['rclone-upload'])
-        self.proxy.update(config['base']['proxy'])
-        self.notify.update(config['notify']['telegram'])
+
+        load_config = file_operation.readYml(os.path.join(work_dir, 'config', 'config.yml'))
+        print(work_dir)
+        self.__dict__.update(load_config['base'])
+        self.work_dir = work_dir
+        self.server.update(load_config['base']['server'])
+        self.process.update(load_config['base']['process'])
+        self.bilibili_upload.update(load_config['base']['bilibili-upload'])
+        self.rclone_upload.update(load_config['base']['rclone-upload'])
+        self.proxy.update(load_config['base']['proxy'])
+        self.notify.update(load_config['notify']['telegram'])
         self.config_dir = self._config_dir()
 
     def _config_dir(self):
@@ -140,11 +144,27 @@ class RoomConfig(BaseModel):
     title: str = Field(..., description='视频标题(模板字符串)')
     description: str = Field(..., description='视频描述(模板字符串)')
     dynamic: str = Field(..., description='视频动态(模板字符串)')
-    # channel: property(lambda self: self._channel, _setChannel) = Field(..., description='上传频道')
+    channel: (str, str) = Field(..., description='上传频道')
     tags: list[str] = Field([], description='上传标签')
     conditions: list[Condition] = Field([], description='房间额外条件')
 
     _channel: (str, str) = None
+
+    @classmethod
+    def get_channel(cls, self):
+        return self._channel
+
+    @classmethod
+    def set_channel(cls, self, value1: str, value2: str):
+        self._channel = _setChannel(value1, value2)
+
+    @property
+    def channel(self):
+        return self.get_channel(self)
+
+    @channel.setter
+    def channel(self, value: str):
+        self.set_channel(self, value)
 
     def __init__(self, config: dict, **data: Any):
         super().__init__(**data)
@@ -180,3 +200,6 @@ class RoomConfig(BaseModel):
             except AttributeError as _:
                 logger.warning('Invalid condition: %s', condition.item)
         return result
+
+
+config = Config()

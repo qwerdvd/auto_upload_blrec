@@ -4,9 +4,7 @@ import time
 from fastapi import FastAPI, Request
 from dotenv import load_dotenv
 
-from utils import file_operation
 from .router import router
-from .config.config import BaseConfig
 from loggerController import logger
 
 load_dotenv()
@@ -20,10 +18,6 @@ def get_app() -> FastAPI:
         logger.error("WORK_DIR not set")
         raise ValueError("WORK_DIR not set")
 
-    config = file_operation.readYml(os.path.join(work_dir, 'config', 'config.yml'))
-    base_config = BaseConfig(config)
-    print(base_config)
-
     # 添加中间件计算程序运行时间
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):
@@ -34,5 +28,7 @@ def get_app() -> FastAPI:
         return response
 
     app.include_router(router, prefix="/api")
+
+    logger.info("Server startup")
 
     return app
