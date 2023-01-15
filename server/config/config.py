@@ -1,16 +1,16 @@
 import functools
 import os
 import re
-from typing import Optional, Any
+from typing import Optional, Any, Tuple, Union
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field, BaseSettings
 
+from server.model.info import LiveInfo
 from utils import file_operation
 from loggerController import logger
 from server.model.brec_model import BaseRecordModel
 from server.config.utils import _getValue, _setChannel
-
 
 load_dotenv()
 work_dir = os.getenv("WORK_DIR")
@@ -106,6 +106,7 @@ class Config(BaseModel):
 
         load_config = file_operation.readYml(os.path.join(work_dir, 'config', 'config.yml'))
         print(work_dir)
+        self.rec_dir = load_config['base']['rec-dir']
         self.__dict__.update(load_config['base'])
         self.work_dir = work_dir
         self.server.update(load_config['base']['server'])
@@ -129,14 +130,14 @@ class Condition(BaseModel):
 
     _channel: (str, str) = None
 
-    def __init__(self, config: dict, **kwargs):
+    def __init__(self, room_config: dict, **kwargs):
         super().__init__(**kwargs)
-        get_value = functools.partial(_getValue, data=config)
+        get_value = functools.partial(_getValue, data=room_config)
         self.item = get_value('item')
         self.regexp = str(get_value('regexp'))
         self.process = get_value('process', True)
         self.tags = get_value('tags', '').split(',')
-        self.channel = config.get('channel', '')
+        self.channel = room_config.get('channel', '')
 
 
 class RoomConfig(BaseModel):
@@ -144,31 +145,15 @@ class RoomConfig(BaseModel):
     title: str = Field(..., description='视频标题(模板字符串)')
     description: str = Field(..., description='视频描述(模板字符串)')
     dynamic: str = Field(..., description='视频动态(模板字符串)')
-    channel: (str, str) = Field(..., description='上传频道')
+    channel: Union[Tuple[str], str, list[str]] = Field(..., description='上传频道')
     tags: list[str] = Field([], description='上传标签')
     conditions: list[Condition] = Field([], description='房间额外条件')
 
-    _channel: (str, str) = None
+    _channel: Union[Tuple[str], str, list[str]] = None
 
-    @classmethod
-    def get_channel(cls, self):
-        return self._channel
-
-    @classmethod
-    def set_channel(cls, self, value1: str, value2: str):
-        self._channel = _setChannel(value1, value2)
-
-    @property
-    def channel(self):
-        return self.get_channel(self)
-
-    @channel.setter
-    def channel(self, value: str):
-        self.set_channel(self, value)
-
-    def __init__(self, config: dict, **data: Any):
-        super().__init__(**data)
-        get_value = functools.partial(_getValue, data=config)
+    def __init__(self, room_config: dict):
+        super().__init__()
+        get_value = functools.partial(_getValue, data=room_config)
 
         self.id = get_value('id')
         self.title = get_value('title', '{title}')
@@ -177,25 +162,31 @@ class RoomConfig(BaseModel):
         self.tags = get_value('tags', '').split(',')
         self.conditions = [Condition(c) for c in get_value('conditions', [])]
         self.channel = get_value('channel', '')
+        _setChannel(self, self.channel)
+
+    def __post_init__(self):
+        if not self.description:
+            self.description = '本录播由@qwerdvd的脚本自动处理上传'
 
     @classmethod
-    def init(cls, work_dir: str, room_id: int, short_id: int = 0) -> Optional['RoomConfig']:
+    def init(cls, event: BaseRecordModel) -> Optional['RoomConfig']:
         path = os.path.join(work_dir, 'config', 'room-config.yml')
         configs = file_operation.readYml(path)
         for room in configs['rooms']:
-            if int(room['id']) in (room_id, short_id):
+            if int(room['id']) in (event.EventData.RoomId, event.EventData.ShortId):
                 return cls(room)
-        logger.warning('Unknown room: [id: %d] [short id: %d]', room_id, short_id)
+        logger.warning(f"EventId: {event.EventId} | EventType: {event.EventType} | "
+                       f"Unknown room: [Room_id: {event.EventData.RoomId}] [Short_id: {event.EventData.ShortId}]")
 
-    def list_conditions(self, event: BaseRecordModel) -> list[Condition]:
+    def list_conditions(self, live_info: LiveInfo) -> list[Condition]:
         """ list proper conditions
-        :param event
+        :param live_info
         :return:
         """
         result = []
         for condition in self.conditions:
             try:
-                if re.search(pattern=condition.regexp, string=getattr(event, condition.item)):
+                if re.search(pattern=condition.regexp, string=getattr(live_info, condition.item)):
                     result.append(condition)
             except AttributeError as _:
                 logger.warning('Invalid condition: %s', condition.item)

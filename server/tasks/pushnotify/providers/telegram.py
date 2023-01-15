@@ -23,13 +23,10 @@ async def telegram_notify(event: BaseRecordModel) -> None:
             banner = f"*{event.EventData.Name}*的直播结束了，欢迎下次再观看！"
             await tg_notice(event, banner, body)
         case "FileOpening":
-            logger.info(f"EventId: {event.EventId} | EventType: {event_type} | Do nothing.")
+            logger.info(f"EventId: {event.EventId} | EventType: {event_type} | Do not push notification.")
             pass
         case "FileClosed":
-            logger.info(f"EventId: {event.EventId} | EventType: {event_type} | Do nothing.")
-            pass
-        case _:
-            logger.error(f"EventId: {event.EventId} | EventType: {event_type} | Unknown event type.")
+            logger.info(f"EventId: {event.EventId} | EventType: {event_type} | Do not push notification.")
             pass
 
 
